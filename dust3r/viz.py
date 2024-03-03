@@ -223,10 +223,15 @@ def add_scene_cam(scene, pose_c2w, edge_color, image=None, focal=None, imsize=No
     if image is not None:
         vertices = geotrf(transform, cam.vertices[[4, 5, 1, 3]])
         faces = np.array([[0, 1, 2], [0, 2, 3], [2, 1, 0], [3, 2, 0]])
-        img = trimesh.Trimesh(vertices=vertices, faces=faces)
-        uv_coords = np.float32([[0, 0], [1, 0], [1, 1], [0, 1]])
-        img.visual = trimesh.visual.TextureVisuals(uv_coords, image=PIL.Image.fromarray(image))
-        scene.add_geometry(img)
+
+        if isinstance(scene, dict):
+            scene['images'].append({'MeshVertex3': vertices, 'MeshTri3': {'Data': faces + 1, 'Texture': image, 'UVMap': np.float32([[0, 0], [1, 0], [1, 1], [0, 1]])}})
+
+        else:
+            img = trimesh.Trimesh(vertices=vertices, faces=faces)
+            uv_coords = np.float32([[0, 0], [1, 0], [1, 1], [0, 1]])
+            img.visual = trimesh.visual.TextureVisuals(uv_coords, image=PIL.Image.fromarray(image))
+            scene.add_geometry(img)
 
     # this is the camera mesh
     rot2 = np.eye(4)
@@ -255,7 +260,10 @@ def add_scene_cam(scene, pose_c2w, edge_color, image=None, focal=None, imsize=No
 
     cam = trimesh.Trimesh(vertices=vertices, faces=faces)
     cam.visual.face_colors[:, :3] = edge_color
-    scene.add_geometry(cam)
+    if isinstance(scene, dict):
+        scene['cameras'].append({'MeshVertex3': vertices, 'MeshTri3': np.array(faces) + 1})
+    else:
+        scene.add_geometry(cam)
 
 
 def cat(a, b):
