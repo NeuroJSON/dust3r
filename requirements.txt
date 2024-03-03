@@ -10,3 +10,5 @@ einops
 trimesh
 tensorboard
 pyglet<2
+jdata
+bjdata
